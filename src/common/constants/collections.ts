@@ -1,0 +1,16 @@
+export enum CollectionNames {
+  EMPLOYEE = "employees",
+  ROLE = "roles",
+  USER = "users",
+  NEWS = "news",
+  CATEGORIES = "categories",
+  SUBJECTS = "subjects",
+  SECTIONS = "sections",
+  TOPICS = "topics",
+  TEST = "tests",
+  QUESTION = "questions",
+  ANSWER = "answers",
+  REGIONS = "regions",
+  SCORES = "scores",
+  CLASS = "classes",
+}
