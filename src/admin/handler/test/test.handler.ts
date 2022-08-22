@@ -43,8 +43,7 @@ export async function updateTestHandler(req, res, next) {
         const data = await validateIt({ ...req.params, ...req.body }, TestDto, TestDtoGroup.UPDATE)
         const id = data._id
 
-        const test = await testService.getById(id)
-        if (!test.length) throw TestResponse.NotFound(id)
+        await testService.getById(id)
 
         const updTest = await testService.update(id, data)
 
@@ -53,19 +52,3 @@ export async function updateTestHandler(req, res, next) {
         return next(error)
     }
 }
-
-// export async function deleteTestHandler(req, res, next){
-//     try {
-//         const data=await validateIt(req.params, TestDto, TestDtoGroup.DELETE)
-//         const id=data._id
-
-//         const test=await testService.getById(id)
-//         if(!test.length) throw TestResponse.NotFound(id)
-
-//         const result=await withTransaction(async (session)=>{
-
-//         })
-//     } catch (error) {
-//         return next(error)
-//     }
-// }

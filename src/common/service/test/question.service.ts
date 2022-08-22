@@ -44,7 +44,10 @@ export class QuestionService extends CommonServices<Question>{
                 $match
             ]
 
-            return await this.aggregate($pipeline)
+            const question = (await this.aggregate($pipeline))[0]
+            if (!question) throw QuestionResponse.NotFound(id)
+
+            return question;
         } catch (error) {
             throw error
         }

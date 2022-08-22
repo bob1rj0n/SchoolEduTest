@@ -22,7 +22,6 @@ export async function getBySubjectIdPagingHandler(req, res, next) {
         const data = await validateIt(req.query, TestPagingDto, DtoGroups.PAGENATION)
 
         const result = await testService.getBySubjectIdPaging(data)
-        if (!result.length) throw TestResponse.NotFound()
 
         return res.send(TestResponse.Success(result))
     } catch (error) {

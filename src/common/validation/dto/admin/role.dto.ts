@@ -88,39 +88,6 @@ export class RoleDto extends BaseDto {
   studentDelete: boolean;
 
 
-  // teachers
-  @IsBoolean({
-    groups: [RoleDtoGroup.CREATE, RoleDtoGroup.UPDATE]
-  })
-  @IsOptional({
-    groups: [RoleDtoGroup.CREATE, RoleDtoGroup.UPDATE]
-  })
-  teacher: boolean;
-
-  @IsBoolean({
-    groups: [RoleDtoGroup.CREATE, RoleDtoGroup.UPDATE]
-  })
-  @IsOptional({
-    groups: [RoleDtoGroup.CREATE, RoleDtoGroup.UPDATE]
-  })
-  teacherCreate: boolean;
-
-  @IsBoolean({
-    groups: [RoleDtoGroup.CREATE, RoleDtoGroup.UPDATE]
-  })
-  @IsOptional({
-    groups: [RoleDtoGroup.CREATE, RoleDtoGroup.UPDATE]
-  })
-  teacherUpdate: boolean;
-
-  @IsBoolean({
-    groups: [RoleDtoGroup.CREATE, RoleDtoGroup.UPDATE]
-  })
-  @IsOptional({
-    groups: [RoleDtoGroup.CREATE, RoleDtoGroup.UPDATE]
-  })
-  teacherDelete: boolean;
-
   /** ******************************* */
 
   //role

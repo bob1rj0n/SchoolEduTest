@@ -8,9 +8,9 @@ export enum CollectionNames {
   SECTIONS = "sections",
   TOPICS = "topics",
   TEST = "tests",
-  QUESTION = "questions",
+  QUESTION = "testquestions",
   ANSWER = "answers",
   REGIONS = "regions",
-  SCORES = "scores",
+  QUIZ = "quizes",
   CLASS = "classes",
 }

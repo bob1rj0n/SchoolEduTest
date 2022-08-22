@@ -1,7 +1,7 @@
 import { BeAnObject, IObjectWithTypegooseFunction, ModelType } from "@typegoose/typegoose/lib/types";
 import { QueryOptions, Document, Types } from "mongoose";
 import { RegionResponse } from "../../db/models/region/region.error";
-import { Region, RegionModel } from "../../db/models/region/region.mode";
+import { Region, RegionModel } from "../../db/models/region/region.model";
 import { CommonServices } from "../common.service";
 
 

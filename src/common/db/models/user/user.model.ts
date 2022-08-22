@@ -2,7 +2,7 @@ import { getModelForClass, index, modelOptions, prop, Ref } from "@typegoose/typ
 import { Types } from "mongoose";
 import { CollectionNames } from "../../../constants/collections";
 import { BaseModel } from "../base.model";
-import { Region } from "../region/region.mode";
+import { Region } from "../region/region.model";
 
 export enum Gender {
     MALE = "male",

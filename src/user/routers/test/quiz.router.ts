@@ -1,7 +1,6 @@
 import { Router } from "express"
 import {
-    checkAnswerHandler,
-    finishedQuizHandler,
+    finishAndCheckQuizHandler,
     getPagingResultHandler,
     getRegisteredTestsHandler,
     getResultOneTestHandler,
@@ -16,8 +15,7 @@ router
     .post("/register", authTokenUser, registerForTestHandler)
     .get("/get", authTokenUser, getRegisteredTestsHandler)
     .post("/start", authTokenUser, startQuizHandler)
-    .post("/finish", authTokenUser, finishedQuizHandler)
-    .post("/check", authTokenUser, checkAnswerHandler)
+    .post("/finish", authTokenUser, finishAndCheckQuizHandler)
     .get("/result", authTokenUser, getPagingResultHandler)
     .get("/resultOne/:testId", authTokenUser, getResultOneTestHandler)
 

@@ -1,8 +1,5 @@
 import { QuestionResponse } from "../../../common/db/models/test/question/question.error"
-import { BaseResponse } from "../../../common/reporter/base.response"
-import { setAnswerService } from "../../../common/service/test/answer.service"
 import { questionService } from "../../../common/service/test/question.service"
-import { SetAnswerDto, SetAnswerDtoGroup } from "../../../common/validation/dto/test/answer.dto"
 import { QuestionPagingDto, QuestionDtoGroup, AnswerDto } from "../../../common/validation/dto/test/question.dto"
 import { validateIt } from "../../../common/validation/validate"
 

@@ -2,6 +2,8 @@ import { ModelType } from "@typegoose/typegoose/lib/types";
 import { QueryOptions, Types } from "mongoose";
 import { AnswerResponse } from "../../db/models/test/user.answers/answer.error";
 import { SetAnswer, setAnswerModel } from "../../db/models/test/user.answers/answer.model";
+import { TestStatus } from "../../db/models/test/user.answers/quiz.model";
+import { BaseResponse } from "../../reporter/base.response";
 import { CommonServices } from "../common.service";
 import { quizService } from "./quiz.service";
 import { testService } from "./test.service";
@@ -20,30 +22,10 @@ export class AnswerService extends CommonServices<SetAnswer>{
         }
     }
 
-    public async getByQuestionId(ids) {
-        try {
-            const { userId, questionId, testId, startedAt } = ids;
-            const $match = {
-                $match: {
-                    userId: userId,
-                    questionId: questionId,
-                    testId: testId,
-                    createdAt: { $gte: (startedAt) },
-                    isDeleted: false
-                }
-            }
-            const $pipeline = [$match]
-
-            return (await this.aggregate($pipeline))[0]
-        } catch (error) {
-            throw error
-        }
-    }
-
-    public async checkTimeByTestId(testId, startedAt) {
+    public async checkTime(testId, startedAt) {
         try {
             const test = await testService.getById(new Types.ObjectId(testId))
-            const duration = test[0].duration
+            const duration = test.duration
 
             const time = new Date(startedAt.getTime() + 1000 * 60 * (duration))
 
@@ -60,27 +42,17 @@ export class AnswerService extends CommonServices<SetAnswer>{
         }
     }
 
-    public async updateByIds(ids, data, options?: QueryOptions) {
+    public async updateWithoutId(data, startedAt, options?: QueryOptions) {
         try {
-            const { userId, questionId, testId, startedAt } = ids
-            const $match = {
-                $match: {
-                    userId: userId,
-                    questionId: questionId,
-                    testId: testId,
-                    createdAt: { $gte: new Date(startedAt) },
-                    isDeleted: false
-                }
+            const query = {
+                userId: new Types.ObjectId(data.userId),
+                questionId: new Types.ObjectId(data.questionId),
+                testId: new Types.ObjectId(data.testId),
+                createdAt: { $gte: (startedAt) },
+                isDeleted: false
             }
 
-            const $pipeline = [$match]
-
-            const result = (await this.aggregate($pipeline))[0]
-            console.log("result : ", result)
-            if (!result) throw AnswerResponse.NotFound()
-            const id = result._id
-
-            return await this.updateOne(id, data)
+            return await this.updateOneByQuery(query, { answerId: new Types.ObjectId(data.answerId) })
         } catch (error) {
             throw error
         }

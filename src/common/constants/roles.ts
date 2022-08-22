@@ -13,13 +13,6 @@ export enum Roles {
   STUDENT_UPDATE = 'studentUpdate',
   STUDENT_DELETE = 'studentDelete',
 
-  // teacher
-  TEACHER = 'teacher',
-  TEACHER_CREATE = 'teacherCreate',
-  TEACHER_UPDATE = 'teacherUpdate',
-  TEACHER_DELETE = 'teacherDelete',
-
-
   //role
   ROLE = 'role',
   ROLE_CREATE = 'roleCreate',

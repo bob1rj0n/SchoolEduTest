@@ -28,28 +28,7 @@ export class Role extends BaseModel {
     @prop({ trim: true })
     description: string
 
-
-    /* ************************ */
-
-    //teachers
-    @prop({ default: false })
-    teacher: boolean
-
-    @prop({
-        default: false
-    })
-    teacherCreate: boolean
-
-    @prop({
-        default: false
-    })
-    teacherUpdate: boolean
-
-    @prop({
-        default: false
-    })
-    teacherDelete: boolean
-
+    
     /* ******************* */
 
     //roles

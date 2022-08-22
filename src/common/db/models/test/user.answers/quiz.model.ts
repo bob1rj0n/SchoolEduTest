@@ -12,7 +12,7 @@ export enum TestStatus {
     FINISHED = "finished"
 }
 @modelOptions({
-    schemaOptions: { collection: CollectionNames.SCORES }
+    schemaOptions: { collection: CollectionNames.QUIZ }
 })
 
 export class Quiz extends BaseModel {

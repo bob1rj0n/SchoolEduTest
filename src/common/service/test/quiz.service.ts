@@ -2,10 +2,9 @@ import { ModelType } from "@typegoose/typegoose/lib/types";
 import { QueryOptions, Types } from "mongoose";
 import { CollectionNames } from "../../constants/collections";
 import { QuizResponse } from "../../db/models/test/user.answers/quiz.error";
-import { Quiz, quizModel } from "../../db/models/test/user.answers/quiz.model";
+import { Quiz, quizModel, TestStatus } from "../../db/models/test/user.answers/quiz.model";
 import { CommonServices } from "../common.service";
 import { setAnswerService } from "./answer.service";
-import { questionService } from "./question.service";
 
 export class QuizService extends CommonServices<Quiz>{
     constructor(model: ModelType<Quiz>) {
@@ -17,25 +16,6 @@ export class QuizService extends CommonServices<Quiz>{
             return await super.create(data)
         } catch (error) {
             throw error
-        }
-    }
-
-    public async getByIdError(id) {
-        try {
-            const $match = {
-                $match: {
-                    _id: new Types.ObjectId(id),
-                    isDeleted: false
-                }
-            }
-            const $pipeline = [$match]
-
-            const res = (await this.aggregate($pipeline))[0]
-            if (!res) throw QuizResponse.NotFound(id)
-
-            return res
-        } catch (e) {
-            throw e
         }
     }
 
@@ -122,9 +102,45 @@ export class QuizService extends CommonServices<Quiz>{
                     trueAnswersCount: -1
                 }
             }
+            const $group = {
+                $group: {
+                    _id: "$testId",
+                    participants: { $sum: 1 },
+                    totalPercent: { $sum: "$percent" },
+                    maxPercent: { $max: "$percent" }
+                }
+            }
+            const $lookup = {
+                $lookup: {
+                    from: CollectionNames.TEST,
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "test"
+                }
+            }
+            const $unwind = {
+                $unwind: {
+                    path: "$test",
+                    preserveNullAndEmptyArrays: true
+                }
+            }
+            const $project = {
+                $project: {
+                    participants: 1,
+                    "avgPercent": { $round: [{ $divide: ["$totalPercent", "$participants"] }, 1] },
+                    maxPercent: 1,
+                    test: {
+                        questionCount: 1
+                    }
+                }
+            }
             const $pipeline = [
                 $match,
                 $sort,
+                $group,
+                $lookup,
+                $unwind,
+                $project,
             ]
             return await this.aggregate($pipeline)
         } catch (error) {
@@ -132,9 +148,8 @@ export class QuizService extends CommonServices<Quiz>{
         }
     }
 
-    public async findByUserAndTestIds(ids) {
+    public async findQuizByUserAndTestId(userId, testId) {
         try {
-            const { userId, testId } = ids;
             const $sort = {
                 $sort: {
                     createdAt: -1
@@ -152,7 +167,10 @@ export class QuizService extends CommonServices<Quiz>{
                 $match,
             ]
 
-            return await this.aggregate($pipeline)
+            const res = (await this.aggregate($pipeline))[0]
+            if (!res) throw QuizResponse.NotFound()
+
+            return res;
         } catch (error) {
             throw error
         }
@@ -210,7 +228,7 @@ export class QuizService extends CommonServices<Quiz>{
             const $match = {
                 $match: {
                     userId: new Types.ObjectId(UserId),
-                    status: "started",
+                    status: TestStatus.STARTED,
                     isDeleted: false
                 }
             }
@@ -218,8 +236,8 @@ export class QuizService extends CommonServices<Quiz>{
                 $sort,
                 $match
             ]
-            const res = await this.aggregate($pipeline)
-            if (res[0]) throw QuizResponse.HaveStartedTest({ testId: res[0].testId })
+            const res = (await this.aggregate($pipeline))[0]
+            if (res) throw QuizResponse.HaveStartedTest({ testId: res.testId })
             return
         } catch (error) {
             throw error
@@ -229,48 +247,108 @@ export class QuizService extends CommonServices<Quiz>{
 
     public async updateUserScores(id, data, options?: QueryOptions) {
         try {
-
             return await this.updateOne(id, data, options)
         } catch (error) {
             throw error
         }
     }
 
-    public async checkAnswer(ids) {
+    public async checkAnswer(userId, testId, startedAt) {
+
         try {
-            const { userId, testId, startedAt } = ids
+            const $sort = {
+                $sort: {
+                    createdAt: -1
+                }
+            }
             const $match = {
                 $match: {
-                    userId: userId,
-                    testId: testId,
+                    userId: new Types.ObjectId(userId),
+                    testId: new Types.ObjectId(testId),
                     createdAt: { $gte: (startedAt) },
                     isDeleted: false
                 }
             }
-            const $pipeline = [$match]
-            const userAnswers = await setAnswerService.aggregate($pipeline)
+            const $lookupQuestion = {
+                $lookup: {
+                    from: CollectionNames.QUESTION,
+                    localField: "questionId",
+                    foreignField: "_id",
+                    as: "question"
+                }
+            }
+            const $unwindQuestion = {
+                $unwind: {
+                    path: "$question",
+                    preserveNullAndEmptyArrays: true
+                }
+            }
 
-            let count = 0
-            for (let item of userAnswers) {
-                const answerId = item.answerId;
 
-                const question = await questionService.getById(item.questionId)
-
-                for (let answers of question[0].answers) {
-                    if (answers.isCorrect == true && answers._id == answerId) {
-                        count += 1;
+            const $project = {
+                $project: {
+                    answerId: 1,
+                    "trueAnswer": {
+                        $filter: {
+                            input: "$question.answers",
+                            as: "item",
+                            cond: {
+                                $and: [
+                                    { $eq: ["$$item.isCorrect", true] },
+                                ]
+                            }
+                        }
                     }
                 }
             }
-            const userScore = await quizService.findByUserAndTestIds(ids)
-            if (!userScore.length) throw QuizResponse.NotFound()
 
-            const percent = ((count / userScore[0].questionCount) * 100).toFixed(1)
+            const $unwindJavob = {
+                $unwind: {
+                    path: "$trueAnswer",
+                    preserveNullAndEmptyArrays: true
+                }
+            }
+            const $group = {
+                $group: {
+                    _id: {
+                        answer: {
+                            $eq: ["$answerId", "$trueAnswer._id"]
+                        }
+                    },
+                    count: { $sum: 1 }
+                }
+            }
+            const $Match = {
+                $match: {
+                    "_id.answer": true
+                }
+            }
 
-            const id = userScore[0]._id
-            return await this.updateUserScores(id, { trueAnswersCount: count, percent: percent })
+            const $pipeline = [
+                $sort,
+                $match,
+                $lookupQuestion,
+                $unwindQuestion,
+                $project,
+                $unwindJavob,
+                $group,
+                $Match
+            ]
+
+            let res = (await setAnswerService.aggregate($pipeline))[0]
+            if (!res) {
+                res = {
+                    _id: {
+                        answer: true
+                    },
+                    count: 0
+                }
+                return res;
+            }
+
+            return res;
         } catch (error) {
-            throw error
+            throw error;
         }
     }
 }

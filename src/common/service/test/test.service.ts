@@ -45,7 +45,10 @@ export class TestService extends CommonServices<Test>{
                 $match
             ]
 
-            return await this.aggregate($pipeline)
+            const test = (await this.aggregate($pipeline))[0]
+            if (!test) throw TestResponse.NotFound(id)
+
+            return test;
         } catch (error) {
             throw error
         }
@@ -80,7 +83,10 @@ export class TestService extends CommonServices<Test>{
                 $project
             ]
 
-            return await this.aggregate($pipeline)
+            const tests = await this.aggregate($pipeline)
+            if (!tests.length) throw TestResponse.NotFound()
+
+            return tests;
         } catch (error) {
             throw error
         }
